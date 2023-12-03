@@ -46,50 +46,60 @@ public:
 		}
 	}
 	virtual void OnUpdate(float ts) override {
-		m_Camera.OnUpdate(ts);
+		m_CameraMoving = m_Camera.OnUpdate(ts);
+		if (m_CameraMoving)
+			m_Renderer.ResetFrameIndex();
 	}
 	virtual void OnUIRender() override
 	{
-		ImGui::Begin("Rayspace Panel");
+		ImGui::Begin("Panel");
 		if (ImGui::Button("Render")) {
 			Render();
 		}
-		ImGui::End();
-		ImGui::Begin("Debug Info");
-		ImGui::Text("Last render: %.3fms", m_LastRenderTime);
-		ImGui::Text("Current FPS: %.0f", (1.0f / ImGui::GetIO().DeltaTime));
+		if (ImGui::Button("Reset")) {
+			m_Renderer.ResetFrameIndex();
+		}
+		ImGui::Checkbox("Accumulate", &m_Renderer.GetSettings().Accumulate);
+		if (ImGui::CollapsingHeader("Debug Info")) {
+			ImGui::Text("Last render: %.3fms", m_LastRenderTime);
+			ImGui::Text("Current FPS: %.0f", (1.0f / ImGui::GetIO().DeltaTime));
+		}
 		ImGui::End();
 		ImGui::Begin("Scene");
-		ImGui::Text("Spheres: %.0f", (float)m_Scene.Spheres.size());
-		ImGui::Separator();
-		for (size_t i = 0; i < m_Scene.Spheres.size(); i++)
-		{
-			ImGui::PushID((int)i);
-
-			Sphere& sphere = m_Scene.Spheres[i];
-			ImGui::Text("Sphere #%.0f", (float)i+1);
-			ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
-			ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-			ImGui::DragInt("Material", &sphere.MaterialIndex, 1.0f, 0, (int)m_Scene.Materials.size() - 1);
-
+		if (ImGui::CollapsingHeader("Spheres")) {
+			ImGui::Text("Spheres: %.0f", (float)m_Scene.Spheres.size());
 			ImGui::Separator();
+			for (size_t i = 0; i < m_Scene.Spheres.size(); i++)
+			{
+				ImGui::PushID((int)i);
 
-			ImGui::PopID();
+				Sphere& sphere = m_Scene.Spheres[i];
+				ImGui::Text("Sphere #%.0f", (float)i + 1);
+				ImGui::DragFloat3("Position", glm::value_ptr(sphere.Position), 0.1f);
+				ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
+				ImGui::DragInt("Material", &sphere.MaterialIndex, 1.0f, 0, (int)m_Scene.Materials.size() - 1);
+
+				ImGui::Separator();
+
+				ImGui::PopID();
+			}
 		}
-		ImGui::Text("Materials: %.0f", (float)m_Scene.Materials.size());
-		ImGui::Separator();
-		for (size_t i = 0; i < m_Scene.Materials.size(); i++)
-		{
-			Material& Mat = m_Scene.Materials[i];
-			ImGui::PushID((int)i);
-
-			ImGui::Text("Material #%.0f", (float)i + 1);
-			ImGui::ColorEdit3("Albedo", glm::value_ptr(Mat.Albedo));
-			ImGui::DragFloat("Roughness", &Mat.Roughness, 0.05f, 0.0f, 1.0f);
-			ImGui::DragFloat("Metallic", &Mat.Metallic, 0.05f, 0.0f, 1.0f);
-
+		if (ImGui::CollapsingHeader("Materials")) {
+			ImGui::Text("Materials: %.0f", (float)m_Scene.Materials.size());
 			ImGui::Separator();
-			ImGui::PopID();
+			for (size_t i = 0; i < m_Scene.Materials.size(); i++)
+			{
+				Material& Mat = m_Scene.Materials[i];
+				ImGui::PushID((int)i);
+
+				ImGui::Text("Material #%.0f", (float)i + 1);
+				ImGui::ColorEdit3("Albedo", glm::value_ptr(Mat.Albedo));
+				ImGui::DragFloat("Roughness", &Mat.Roughness, 0.05f, 0.0f, 1.0f);
+				ImGui::DragFloat("Metallic", &Mat.Metallic, 0.05f, 0.0f, 1.0f);
+
+				ImGui::Separator();
+				ImGui::PopID();
+			}
 		}
 
 		ImGui::End();
@@ -132,7 +142,7 @@ private:
 	Camera m_Camera;
 	Scene m_Scene;
 	uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
-
+	bool m_CameraMoving = false;
 	float m_LastRenderTime = 0.0f, m_RainbowSpeed = 4.0f;
 };
 
