@@ -31,6 +31,12 @@ public:
 		blueSphere.Albedo = { 0.2f, 0.3f, 1.0f };
 		blueSphere.Roughness = 0.1f;
 
+		Material& orangeSphere = m_Scene.Materials.emplace_back();
+		orangeSphere.Albedo = { 1.0f, 1.0f, 0.0f };
+		orangeSphere.Roughness = 0.0f;
+		orangeSphere.EmissionColor = { 1.0f, 0.692f, 0.235f };
+		orangeSphere.EmissionPower = 20.0f;
+
 		{
 			Sphere sphere;
 			sphere.Radius = 1.0f;
@@ -39,10 +45,29 @@ public:
 		}
 		{
 			Sphere sphere;
+			sphere.Position = { 7.4f, 0.0f, -20.0f };
+			sphere.Radius = 11.3f;
+			sphere.MaterialIndex = 2;
+			m_Scene.Spheres.push_back(sphere);
+		}
+		{
+			Sphere sphere;
 			sphere.Position = { 0.0f, -101.0f, 0.0f };
 			sphere.Radius = 100.0f;
 			sphere.MaterialIndex = 1;
 			m_Scene.Spheres.push_back(sphere);
+		}
+	}
+	void PushToScene(int size, Sphere spheres[]) {
+		for(int i = 0; i < size; i++)
+		{
+			m_Scene.Spheres.push_back(spheres[i]);
+		}
+	}
+	void PushToScene(int size, Material materials[]) {
+		for (int i = 0; i < size; i++)
+		{
+			m_Scene.Materials.push_back(materials[i]);
 		}
 	}
 	virtual void OnUpdate(float ts) override {
@@ -60,6 +85,8 @@ public:
 			m_Renderer.ResetFrameIndex();
 		}
 		ImGui::Checkbox("Accumulate", &m_Renderer.GetSettings().Accumulate);
+		ImGui::Checkbox("Slow Random", &m_Renderer.GetSettings().SlowRandom);
+		ImGui::Checkbox("Use Skybox", &m_Renderer.GetSettings().UseSkybox);
 		if (ImGui::CollapsingHeader("Debug Info")) {
 			ImGui::Text("Last render: %.3fms", m_LastRenderTime);
 			ImGui::Text("Current FPS: %.0f", (1.0f / ImGui::GetIO().DeltaTime));
@@ -96,6 +123,8 @@ public:
 				ImGui::ColorEdit3("Albedo", glm::value_ptr(Mat.Albedo));
 				ImGui::DragFloat("Roughness", &Mat.Roughness, 0.05f, 0.0f, 1.0f);
 				ImGui::DragFloat("Metallic", &Mat.Metallic, 0.05f, 0.0f, 1.0f);
+				ImGui::ColorEdit3("Emission Color", glm::value_ptr(Mat.EmissionColor));
+				ImGui::DragFloat("Emission Power", &Mat.EmissionPower, 0.05f, 0.0f, FLT_MAX);
 
 				ImGui::Separator();
 				ImGui::PopID();
